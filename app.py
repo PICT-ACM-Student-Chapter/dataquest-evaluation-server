@@ -1,7 +1,7 @@
 from flask import Flask, request
 import os
 import pandas as pd
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, multilabel_confusion_matrix, mean_squared_error
 
 app = Flask(__name__)
 
@@ -35,7 +35,13 @@ def eval1():
     return {'private': private_acc,
     'public': public_acc}
 
-    
+def rmse_tp(reg_soln, reg_att, cl_soln, cl_att):                                 ## rmse true positives
+    score = 0
+    mat = multilabel_confusion_matrix(cl_soln, cl_att, labels=["Tee", "Cap", "Mug"])
+    mse = mean_squared_error(reg_soln, reg_att)
+    cl_score = mat[0][1][1]/(mat[0][1][1] + mat[0][0][1])
+    return mse + cl_score*65
+
 
 @app.route('/te-be-round-1', methods=['POST'])
 def eval2():
@@ -53,21 +59,34 @@ def eval2():
 
         private_acc = 0
         print(soln.shape)
+
         if attempt.shape == soln.shape:
             
-            attempt = attempt.iloc[:, 1].values
-            soln = soln.iloc[:, 1].values
+            attempt_cl = attempt.iloc[:, 2].values
+            soln_cl = soln.iloc[:, 2].values
+
+            attempt_reg = attempt.iloc[:, 1].values
+            soln_reg = soln.iloc[:, 1].values
 
             pr_mark = int(soln.shape[0]*0.7)
+
+            print(pr_mark)
             
-            public_soln = soln[:pr_mark]
-            public_att = attempt[:pr_mark]
+            public_soln_cl = soln_cl[:pr_mark]
+            public_att_cl = attempt_cl[:pr_mark]
 
-            private_soln = soln[pr_mark:]
-            private_att = attempt[pr_mark:]
+            public_soln_reg = soln_reg[:pr_mark]
+            public_att_reg = attempt_reg[:pr_mark]
 
-            public_acc = accuracy_score(public_soln, public_att)
-            private_acc = accuracy_score(private_soln, private_att)
+
+            private_soln_cl = soln_cl[pr_mark:]
+            private_att_cl = attempt_cl[pr_mark:]
+
+            private_soln_reg = soln_reg[pr_mark:]
+            private_att_reg = attempt_reg[pr_mark:]
+
+            public_acc = rmse_tp(public_soln_reg, public_att_reg, public_soln_cl, public_att_cl)
+            private_acc = rmse_tp(private_soln_reg, private_att_reg, private_soln_cl, private_att_cl)
 
     return {'private': private_acc,
     'public': public_acc}
