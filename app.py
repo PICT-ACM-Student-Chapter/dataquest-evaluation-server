@@ -40,7 +40,7 @@ def rmse_tp(reg_soln, reg_att, cl_soln, cl_att):                                
     mat = multilabel_confusion_matrix(cl_soln, cl_att, labels=["Tee", "Cap", "Mug"])
     mse = mean_squared_error(reg_soln, reg_att)
     cl_score = mat[0][1][1]/(mat[0][1][1] + mat[0][0][1])
-    return mse + cl_score*65
+    return mse + (1 - cl_score)*65
 
 
 @app.route('/te-be-round-1', methods=['POST'])
