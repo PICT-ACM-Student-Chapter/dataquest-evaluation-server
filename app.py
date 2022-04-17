@@ -5,18 +5,18 @@ from sklearn.metrics import accuracy_score, multilabel_confusion_matrix, mean_sq
 
 app = Flask(__name__)
 
-@app.route('/fe-se-round-1', methods=['POST'])
+@app.route('/fe-se-round-1', methods=['POSt'])
 def eval1():
     if request.method == 'POST':
 
-        file = request.files['csvfile']
-        if not os.path.isdir('static'):
-            os.mkdir('static')
-        filepath = os.path.join('static', file.filename)
-        file.save(filepath)
-        print(filepath)
-        attempt = pd.read_csv(filepath)
+        file_url = request.json['file_url']
+        attempt = pd.read_csv(file_url)
         soln = pd.read_csv('static/fe-se-1.csv')
+
+        print(attempt.head)
+
+        private_acc = 0
+        public_acc = 0
 
         if attempt.shape == soln.shape:
             print("Fine til; here")
@@ -46,19 +46,13 @@ def rmse_tp(reg_soln, reg_att, cl_soln, cl_att):                                
 @app.route('/te-be-round-1', methods=['POST'])
 def eval2():
     if request.method == 'POST':
-        file = request.files['csvfile']
-        if not os.path.isdir('static'):
-            os.mkdir('static')
-        filepath = os.path.join('static', file.filename)
-        file.save(filepath)
-        attempt = pd.read_csv(filepath)
-    
-        soln = pd.read_csv('static/te-be-1.csv')
 
-        public_acc = 0
+        file_url = request.json['file_url']
+        attempt = pd.read_csv(file_url)
+        soln = pd.read_csv('static/fe-se-1.csv')
 
         private_acc = 0
-        print(soln.shape)
+        public_acc = 0
 
         if attempt.shape == soln.shape:
             
